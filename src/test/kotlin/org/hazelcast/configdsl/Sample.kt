@@ -1,6 +1,7 @@
 package org.hazelcast.configdsl
 
 import com.hazelcast.config.InMemoryFormat.OBJECT
+import com.hazelcast.config.IndexType
 import com.hazelcast.core.EntryAdapter
 import com.hazelcast.map.impl.MapListenerAdapter
 import com.hazelcast.map.listener.MapPartitionLostListener
@@ -16,7 +17,7 @@ fun microserviceSample() {
             inMemoryFormat = OBJECT
         }
         map("empty_session_replication")
-        manCenterConfig("http://localhost:8080/")
+        manCenterConfig(true)
         property("jmx.enabled", "true")
     }
 }
@@ -28,7 +29,7 @@ fun exhaustiveSample() {
             inMemoryFormat = OBJECT
         }
         map("a_lot_of_stuff") {
-            index("foo")
+            index(attributes = *arrayOf("foo"))
             attribute(name = "my_attr", extractor = "com.hazelcast.extractor.foo")
             entryListener("com.hazelcast.listener.foo", true, true)
             entryListener(EntryAdapter<String, String>(), true, true)
@@ -38,7 +39,7 @@ fun exhaustiveSample() {
             partitionLostListener { println(it) }
             queryCache("baz") {
                 entryListener("com.hazelcast.listener.qux", true, true)
-                index("qux")
+                index(attributes = *arrayOf("qux"))
             }
             hotRestart {
                 isFsync = true
@@ -50,9 +51,9 @@ fun exhaustiveSample() {
                 attribute(name = "two", extractor = "com.hazelcast.extractor.two")
             }
             indices {
-                index("one")
-                index("two", true)
-                index(name = "three", ordered = true)
+                index(attributes = *arrayOf("one"))
+                index(IndexType.SORTED, "two")
+                index(IndexType.SORTED, "three")
             }
             entryListeners {
                 entryListener("com.hazelcast.listener.foo", true, true)
@@ -65,18 +66,18 @@ fun exhaustiveSample() {
             }
             queryCaches {
                 queryCache("I") {
-                    index("II") {
+                    index(attributes = *arrayOf("II")) {
                         batchSize = 5
                     }
                 }
-                queryCache("III", "IV") {
+                queryCache("III", attributes = *arrayOf("IV")) {
                     bufferSize = 1
                 }
-                queryCache("V", "VI", true)
+                this@map.queryCache("V",IndexType.SORTED, "VI")
             }
             wanReplicationRef("foo", "bar", listOf(), true)
         }
-        manCenterConfig(url = "http://localhost:8080/")
+        manCenterConfig(scriptingEnabled = true)
         properties {
             this["jmx.enabled"] = "true"
         }

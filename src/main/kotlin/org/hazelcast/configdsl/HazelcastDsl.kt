@@ -22,16 +22,13 @@ fun Config.map(name: String, init: MapConfig.() -> Unit = {}) =
             this@map.addMapConfig(this)
         }
 
-fun Config.manCenterConfig(url: String = "http://localhost:8080/mancenter",
-                           enabled: Boolean = true,
-                           init: ManagementCenterConfig.() -> Unit = {}) =
-    ManagementCenterConfig()
-        .apply(init)
-        .apply {
-            this.url = url
-            this.isEnabled = enabled
-            this@manCenterConfig.managementCenterConfig = this
-        }
+fun Config.manCenterConfig(scriptingEnabled: Boolean,init: ManagementCenterConfig.() -> Unit = {}) =
+        ManagementCenterConfig()
+                .apply(init)
+                .apply {
+                    isScriptingEnabled = scriptingEnabled
+                    this@manCenterConfig.managementCenterConfig = this
+                }
 
 fun QueryCacheConfig.entryListener(className: String, local: Boolean, includeValue: Boolean) =
     EntryListenerConfig(className, local, includeValue)
@@ -45,12 +42,12 @@ fun QueryCacheConfig.entryListener(implementation: MapListener, local: Boolean, 
     EntryListenerConfig(implementation, local, includeValue)
         .apply { this@entryListener.addEntryListenerConfig(this) }
 
-fun QueryCacheConfig.index(name: String,
-                           ordered: Boolean = false,
-                           init: MapIndexConfig.() -> Unit = {}) =
-    MapIndexConfig(name, ordered)
-        .apply(init)
-        .apply { this@index.addIndexConfig(this) }
+fun QueryCacheConfig.index(type: IndexType = IndexType.SORTED,
+                           vararg attributes: String,
+                           init: IndexConfig.() -> Unit = {}) =
+        IndexConfig(type, *attributes)
+                .apply(init)
+                .apply { this@index.addIndexConfig(this) }
 
 fun Config.property(key: String, value: String): Config = setProperty(key, value)
 operator fun Config.set(key: String, value: String) = property(key, value)
