@@ -73,8 +73,8 @@ fun exhaustiveSample() {
                 queryCache("III", attributes = *arrayOf("IV")) {
                     bufferSize = 1
                 }
-                this@map.queryCache("V",IndexType.SORTED, "VI")
             }
+            queryCache("V",IndexType.SORTED, "VI")
             wanReplicationRef("foo", "bar", listOf(), true)
         }
         manCenterConfig(scriptingEnabled = true)
