@@ -7,12 +7,12 @@ import com.hazelcast.map.listener.MapListener
 import com.hazelcast.map.listener.MapPartitionLostListener
 
 fun MapConfig.attribute(name: String, extractor: String) =
-    MapAttributeConfig(name, extractor)
-        .apply { this@attribute.addMapAttributeConfig(this) }
+    AttributeConfig(name, extractor)
+        .apply { this@attribute.addAttributeConfig(this) }
 
-fun MapConfig.index(name: String, ordered: Boolean = false) =
-    MapIndexConfig(name, ordered)
-        .apply { this@index.addMapIndexConfig(this) }
+fun MapConfig.index(type: IndexType = IndexType.SORTED, vararg attributes: String) =
+    IndexConfig(type, *attributes)
+        .apply { this@index.addIndexConfig(this) }
 
 fun MapConfig.entryListener(className: String,
                             local: Boolean,
@@ -49,9 +49,9 @@ fun MapConfig.queryCache(name: String, init: QueryCacheConfig.() -> Unit) =
         .apply(init)
         .apply { this@queryCache.addQueryCacheConfig(this) }
 
-fun MapConfig.queryCache(name: String, indexName: String, ordered: Boolean = false): QueryCacheConfig =
+fun MapConfig.queryCache(name: String, type: IndexType = IndexType.SORTED, vararg attributes: String): QueryCacheConfig =
     QueryCacheConfig(name)
-        .addIndexConfig(MapIndexConfig(indexName, ordered))
+        .addIndexConfig(IndexConfig(type, *attributes))
         .apply { this@queryCache.addQueryCacheConfig(this) }
 
 fun MapConfig.hotRestart(init: HotRestartConfig.() -> Unit) =
@@ -72,29 +72,29 @@ fun MapConfig.wanReplicationRef(name: String,
     WanReplicationRef(name, mergePolicy, filters, republishingEnabled)
         .apply { this@wanReplicationRef.wanReplicationRef = this }
 
-class MapAttributeConfigs {
-    internal val mapAttributes = mutableListOf<MapAttributeConfig>()
-    fun attribute(name: String, extractor: String) =
-        MapAttributeConfig(name, extractor)
-            .apply { mapAttributes.add(this) }
+class AttributeConfigs {
+    internal val attributes = mutableListOf<AttributeConfig>()
+    fun attribute(name: String, extractorClassName: String) =
+        AttributeConfig(name, extractorClassName)
+            .apply { attributes.add(this) }
 }
 
-fun MapConfig.attributes(init: MapAttributeConfigs.() -> Unit) =
-    MapAttributeConfigs()
+fun MapConfig.attributes(init: AttributeConfigs.() -> Unit) =
+    AttributeConfigs()
         .apply(init)
-        .apply { this@attributes.mapAttributeConfigs = mapAttributes }
+        .apply { this@attributes.attributeConfigs = attributes }
 
-class MapIndexConfigs {
-    internal val indices = mutableListOf<MapIndexConfig>()
-    fun index(name: String, ordered: Boolean = false) =
-        MapIndexConfig(name, ordered)
+class IndexConfigs {
+    internal val indices = mutableListOf<IndexConfig>()
+    fun index(type: IndexType = IndexType.SORTED, vararg attributes: String) =
+        IndexConfig(type, *attributes)
             .apply { indices.add(this) }
 }
 
-fun MapConfig.indices(init: MapIndexConfigs.() -> Unit) =
-    MapIndexConfigs()
+fun MapConfig.indices(init: IndexConfigs.() -> Unit) =
+    IndexConfigs()
         .apply(init)
-        .apply { this@indices.mapIndexConfigs = indices }
+        .apply { this@indices.indexConfigs = indices }
 
 class EntryListenerConfigs {
 
@@ -150,11 +150,11 @@ class QueryCacheConfigs {
             .apply { queryCaches.add(this) }
 
     fun queryCache(name: String,
-                   indexName: String,
-                   ordered: Boolean = false,
+                   type: IndexType = IndexType.SORTED,
+                   vararg attributes: String,
                    init: QueryCacheConfig.() -> Unit): QueryCacheConfig =
         QueryCacheConfig(name)
-            .addIndexConfig(MapIndexConfig(indexName, ordered))
+            .addIndexConfig(IndexConfig(type, *attributes))
             .apply(init)
             .apply { queryCaches.add(this) }
 
