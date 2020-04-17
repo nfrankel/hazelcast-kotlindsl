@@ -28,7 +28,6 @@ jobs:
         ./mvnw -B
         clean verify
         sonar:sonar
-        -Pcoverage
         -Dsonar.host.url=https://sonarcloud.io
         -Dsonar.organization=nfrankel-github
         -Dsonar.projectKey=nfrankel_hazelcast-kotlindsl
