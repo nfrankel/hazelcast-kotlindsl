@@ -23,7 +23,16 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-    - name: Build with Maven
-      run: ./mvnw -B clean verify -Pcoverage
+    - name: Build with Maven and run SonarCloud
+      run: >
+        ./mvnw -B
+        clean verify
+        sonar:sonar
+        -Pcoverage
+        -Dsonar.host.url=https://sonarcloud.io
+        -Dsonar.organization=nfrankel-github
+        -Dsonar.projectKey=nfrankel_hazelcast-kotlindsl
+        -Dsonar.scm.disabled=True
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
