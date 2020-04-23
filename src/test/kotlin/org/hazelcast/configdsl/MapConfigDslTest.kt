@@ -4,6 +4,9 @@ import com.hazelcast.config.AttributeConfig
 import com.hazelcast.config.IndexConfig
 import com.hazelcast.config.IndexType
 import com.hazelcast.config.MapConfig
+import com.hazelcast.config.EntryListenerConfig
+import com.hazelcast.core.EntryAdapter
+import com.hazelcast.map.impl.MapListenerAdapter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -66,6 +69,51 @@ internal class MapConfigDslTest {
             }
 
             assertThat(mapConfig.indexConfigs).containsExactly(index1, index2)
+        }
+    }
+
+    @Nested
+    inner class EntryListener {
+        @Test
+        fun `MapConfig can add entryListener given className, local, and includeValue`() {
+            val entryListener = EntryListenerConfig("className", true, true)
+
+            mapConfig.entryListener(entryListener.className, entryListener.isLocal, entryListener.isIncludeValue)
+
+            assertThat(mapConfig.entryListenerConfigs).containsExactly(entryListener)
+        }
+
+        @Test
+        fun `MapConfig can add entryListener given implementation as EntryListener, local, and includeValue`() {
+            val entryListener = EntryListenerConfig(EntryAdapter<String, String>(), true, false)
+
+            mapConfig.entryListener(entryListener.implementation, entryListener.isLocal, entryListener.isIncludeValue)
+
+            assertThat(mapConfig.entryListenerConfigs).containsExactly(entryListener)
+        }
+
+        @Test
+        fun `MapConfig can add entryListener given implementation as MapListener, local, and includeValue`() {
+            val entryListener = EntryListenerConfig(MapListenerAdapter<Int, String>(), false, false)
+
+            mapConfig.entryListener(entryListener.implementation, entryListener.isLocal, entryListener.isIncludeValue)
+
+            assertThat(mapConfig.entryListenerConfigs).containsExactly(entryListener)
+        }
+
+        @Test
+        fun `MapConfig can add entryListeners`() {
+            val entryListener1 = EntryListenerConfig("className", true, true)
+            val entryListener2 = EntryListenerConfig(EntryAdapter<Int, String>(), false, true)
+            val entryListener3 = EntryListenerConfig(MapListenerAdapter<Any, String>(), true, false)
+
+            mapConfig.entryListeners {
+                entryListener(entryListener1.className, entryListener1.isLocal, entryListener1.isIncludeValue)
+                entryListener(entryListener2.implementation, entryListener2.isLocal, entryListener2.isIncludeValue)
+                entryListener(entryListener3.implementation, entryListener3.isLocal, entryListener3.isIncludeValue)
+            }
+
+            assertThat(mapConfig.entryListenerConfigs).containsExactly(entryListener1, entryListener2, entryListener3)
         }
     }
 }
